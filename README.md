@@ -1,4 +1,4 @@
-# just-a-game
+# Just a Game
 
 ## Project setup
 ```
