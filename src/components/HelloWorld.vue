@@ -120,8 +120,13 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
+// import Actor from "@/components/Entities/Actor.vue";
 
-@Component
+@Component({
+  components: {
+    // Actor
+  }
+})
 export default class HelloWorld extends Vue {
   @Prop() private msg!: string;
 }
