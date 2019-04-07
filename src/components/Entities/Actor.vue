@@ -1,9 +1,20 @@
 <template>
-  <div class="actor" :style="{ left: left + 'px', top: top + 'px' }"></div>
+  <div
+    class="actor"
+    :style="{
+      left: left + 'px',
+      top: top + 'px',
+      transform: `rotate(${rotate}deg)`
+    }"
+  >
+    <div class="gun" ref="gun"></div>
+  </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Mixins } from "vue-property-decorator";
+import GameMixin, { TICK_GAME, RENDER_SCENE } from "@/mixins/game";
+import { PUSH_BULLET } from "@/store/modules/bullets";
 
 @Component({
   data() {
@@ -12,7 +23,7 @@ import { Component, Vue } from "vue-property-decorator";
     };
   }
 })
-export default class Actor extends Vue {
+export default class Actor extends Mixins(GameMixin) {
   private _left: number = 10;
   private _top: number = 10;
 
@@ -20,7 +31,7 @@ export default class Actor extends Vue {
 
   private _fpsMax = 60;
 
-  private _gameSpeed = 60;
+  // private _gameSpeed = 60;
 
   private interval = 0;
 
@@ -78,7 +89,7 @@ export default class Actor extends Vue {
 
     clearInterval(this.$data.interval);
 
-    this.$data.interval = setInterval(this.renderScene, 1000 / this.fpsMax);
+    this.$data.interval = setInterval(this[RENDER_SCENE], 1000 / this.fpsMax);
   }
 
   controlLeft: boolean = false;
@@ -91,21 +102,35 @@ export default class Actor extends Vue {
 
     window.addEventListener("keydown", this.controlsDown);
     window.addEventListener("keyup", this.controlsUp);
+    window.addEventListener("mousemove", this.mouseMove);
+    window.addEventListener("click", this.fire);
 
-    this.interval = setInterval(this.renderScene, 1000 / this.fpsMax);
-    setInterval(this.tickGame, 1000 / this._gameSpeed);
+    // this.interval = setInterval(this.renderScene, 1000 / this.fpsMax);
+    // setInterval(this.tickGame, 1000 / this._gameSpeed);
   }
 
-  renderScene(): void {
+  // mounted() {
+  //   this.$root.$on("render-scene", this.renderScene);
+  //   this.$root.$on("tick-game", this.tickGame);
+  // }
+
+  [RENDER_SCENE](): void {
     this.left = Actor._leftState;
     Actor._leftState = 0;
     // (this.controlLeft ? -this.step : 0) + (this.controlRight ? this.step : 0);
     this.top = Actor._topState;
     Actor._topState = 0;
     // (this.controlUp ? -this.step : 0) + (this.controlDown ? this.step : 0);
+
+    this.rotate =
+      Math.atan2(
+        10 * (this.mouseLastPosY - this.top - 10),
+        10 * (this.mouseLastPosX - this.left - 10)
+      ) *
+      (180 / Math.PI);
   }
 
-  tickGame(): void {
+  [TICK_GAME](): void {
     Actor._leftState +=
       (this.controlLeft ? -this.step : 0) + (this.controlRight ? this.step : 0);
     Actor._topState +=
@@ -149,6 +174,44 @@ export default class Actor extends Vue {
         break;
     }
   }
+
+  public fire(/*e: MouseEvent*/) {
+    let clientRect = (this.$refs.gun as Element).getClientRects()[0];
+
+    this.$store.commit(PUSH_BULLET, {
+      top: clientRect.top,
+      left: clientRect.left,
+      vector:
+        Math.atan2(
+          10 * (this.mouseLastPosY - clientRect.top - 10),
+          10 * (this.mouseLastPosX - clientRect.left - 10)
+        ) *
+        (180 / Math.PI)
+    });
+  }
+
+  rotate: number = 0;
+  mouseLastPosX: number = 0;
+  mouseLastPosY: number = 0;
+
+  public mouseMove(e: MouseEvent) {
+    // console.log(e);
+    this.mouseLastPosX = e.clientX;
+    this.mouseLastPosY = e.clientY;
+
+    // let dAx = 10;
+    // let dAy = 0;
+    // let dBx = this.mouseLastPosX - this.left - 10;
+    // let dBy = this.mouseLastPosY - this.top - 10;
+    //
+    // let angle =
+    //   Math.atan2(dAx * dBy - dAy * dBx, dAx * dBx + dAy * dBy) *
+    //   (180 / Math.PI);
+    //
+    // this.rotate =
+    //   Math.atan2(dAx * dBy - dAy * dBx, dAx * dBx + dAy * dBy) *
+    //   (180 / Math.PI);
+  }
 }
 </script>
 
@@ -158,6 +221,18 @@ export default class Actor extends Vue {
   position: absolute;
   width: 20px;
   height: 20px;
-  background: wheat;
+  transform-origin: 50% 50%;
+  background: cadetblue;
+  border-right: 1px solid black;
+  border-radius: 50%;
+
+  .gun {
+    display: block;
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    width: 0;
+    height: 0;
+  }
 }
 </style>
