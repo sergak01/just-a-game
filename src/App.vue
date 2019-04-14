@@ -2,6 +2,7 @@
   <div id="app">
     <div id="nav">
       <router-link to="/">Home</router-link> |
+      <router-link to="/settings">Settings</router-link> |
       <router-link to="/about">About</router-link>
     </div>
     <router-view />
@@ -15,21 +16,40 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import Bullets from "@/components/Bullets.vue";
+import { TICK_GAME, RENDER_SCENE } from "@/mixins/game";
+import { ACTION_LOAD_SETTINGS } from "@/store/modules/settings";
 
 @Component({
   components: { Bullets }
 })
 export default class App extends Vue {
+  FPS_MAX: number = 60;
+  STEP: number = 1;
+  GAME_SPEED: number = 1;
+
   created() {
-    setInterval(this.tickGame, 1000 / 60);
-    setInterval(this.renderScene, 1000 / 60);
+    this.$store
+      .dispatch(ACTION_LOAD_SETTINGS)
+      .then(() => {
+        setInterval(this[TICK_GAME], 1000 / this.GAME_SPEED);
+        setInterval(this[RENDER_SCENE], 1000 / this.FPS_MAX);
+      })
+      .catch(error => {
+        console.error("Store settings not loaded", error);
+      });
   }
 
-  tickGame() {
+  mounted() {
+    this.FPS_MAX = this.$store.state.settings.maxFps;
+    this.STEP = this.$store.state.settings.step;
+    this.GAME_SPEED = this.$store.state.settings.gameSpeed;
+  }
+
+  [TICK_GAME]() {
     this.$root.$emit("tick-game");
   }
 
-  renderScene() {
+  [RENDER_SCENE]() {
     this.$root.$emit("render-scene");
   }
 }

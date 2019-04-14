@@ -10,4 +10,8 @@ export default class GameMixin extends Vue {
     this.$root.$on("render-scene", (this as any)[RENDER_SCENE]);
     this.$root.$on("tick-game", (this as any)[TICK_GAME]);
   }
+
+  get STEP() {
+    return this.$store.state.settings.step;
+  }
 }

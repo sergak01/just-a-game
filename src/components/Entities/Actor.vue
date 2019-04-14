@@ -27,8 +27,6 @@ export default class Actor extends Mixins(GameMixin) {
   private _left: number = 10;
   private _top: number = 10;
 
-  private step: number = 1;
-
   private _fpsMax = 60;
 
   // private _gameSpeed = 60;
@@ -132,9 +130,9 @@ export default class Actor extends Mixins(GameMixin) {
 
   [TICK_GAME](): void {
     Actor._leftState +=
-      (this.controlLeft ? -this.step : 0) + (this.controlRight ? this.step : 0);
+      (this.controlLeft ? -this.STEP : 0) + (this.controlRight ? this.STEP : 0);
     Actor._topState +=
-      (this.controlUp ? -this.step : 0) + (this.controlDown ? this.step : 0);
+      (this.controlUp ? -this.STEP : 0) + (this.controlDown ? this.STEP : 0);
   }
 
   public controlsDown(e: KeyboardEvent) {
