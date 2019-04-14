@@ -53,6 +53,10 @@ export default class Bullet extends Mixins(GameMixin) {
     this.$data._bulletTop = value;
   }
 
+  get rad() {
+    return this.vector * (Math.PI / 180);
+  }
+
   selfDestroy() {
     if (this.$data._doDestroy) {
       this.$store.commit(REMOVE_BULLET, this.index);
@@ -62,8 +66,8 @@ export default class Bullet extends Mixins(GameMixin) {
   }
 
   [TICK_GAME](): void {
-    this.bulletLeft += this.speed;
-    this.bulletTop += this.speed;
+    this.bulletLeft += this.speed * Math.cos(this.rad);
+    this.bulletTop += this.speed * Math.sin(this.rad);
   }
 
   [RENDER_SCENE](): void {}
